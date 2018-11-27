@@ -1,4 +1,4 @@
-package myapi;
+package myapp;
 
 import org.springframework.data.repository.CrudRepository;
 

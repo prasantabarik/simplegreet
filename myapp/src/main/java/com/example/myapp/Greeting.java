@@ -1,4 +1,4 @@
-package myapi;
+package myapp;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
