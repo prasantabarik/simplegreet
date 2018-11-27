@@ -1,0 +1,167 @@
+{
+    "parameters": {
+        "name": {
+            "type": "string"
+        },
+        "appserviceSku": {
+            "type": "string",
+            "defaultValue": "S1",
+            "allowedValues": [
+                "F1",
+                "S1"
+            ]
+        },
+        "workerSize": {
+            "type": "string",
+            "defaultValue": "0"
+        },
+        "sqlLoginPassword": {
+            "type": "string",
+            "defaultValue": "P2ssw0rd"
+        },
+        "sqldbCollation": {
+            "type": "string",
+            "defaultValue": "SQL_Latin1_General_CP1_CI_AS"
+        },
+        "sqldbSku": {
+            "type": "string",
+            "defaultValue": "Basic",
+            "allowedValues": [
+                "Basic",
+                "Business",
+                "Premium",
+                "Standard",
+                "Web"
+            ]
+        }
+    },
+    "variables": {
+        "hostingplanName": "[concat(parameters('name'),'plan')]",
+        "websiteName": "[parameters('name')]",
+        "sqlserverName": "[concat(parameters('name'),'sqlserver')]",
+        "sqlserverdbName": "[concat(parameters('name'),'db')]",
+        "sqlLoginName": "sqladmin"
+    },
+    "resources": [
+        {
+            "name": "[variables('hostingplanName')]",
+            "apiVersion": "2016-09-01",
+            "type": "Microsoft.Web/serverfarms",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "name": "[variables('hostingplanName')]",
+                "workerSizeId": "[parameters('workerSize')]",
+                "numberOfWorkers": "1"
+            },
+            "sku": {
+                "Name": "[parameters('appserviceSku')]"
+            }
+        },
+        {
+            "name": "[variables('websiteName')]",
+            "apiVersion": "2016-08-01",
+            "type": "Microsoft.Web/sites",
+            "properties": {
+                "name": "[variables('websiteName')]",
+                "siteConfig": {
+                    "appSettings": []
+                },
+                "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('hostingplanName'))]"
+            },
+            "location": "[resourceGroup().location]",
+            "resources": [
+                {
+                    "type": "config",
+                    "name": "web",
+                    "apiVersion": "2016-08-01",
+                    "properties": {
+                        "javaVersion": "1.8",
+                        "javaContainer": "TOMCAT",
+                        "javaContainerVersion": "8.5"
+                    },
+                    "dependsOn": [
+                        "[concat('Microsoft.Web/sites/', variables('websiteName'))]"
+                    ]
+                },
+                {
+                    "name": "connectionstrings",
+                    "type": "config",
+                    "apiVersion": "2016-08-01",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.Web/sites/', variables('websiteName'))]"
+                    ],
+                    "properties": {
+                        "defaultConnectionString": {
+                            "value": "[concat('Data Source=tcp:', reference(concat('Microsoft.Sql/servers/', variables('sqlserverName'))).fullyQualifiedDomainName, ',1433;Initial Catalog=', variables('sqlserverdbName'), ';User Id=', variables('sqlLoginName'), '@', variables('sqlserverName'), ';Password=', parameters('sqlLoginPassword'), ';')]",
+                            "type": "SQLAzure"
+                        }
+                    }
+                },
+                {
+                    "name": "appsettings",
+                    "type": "config",
+                    "apiVersion": "2016-08-01",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.Web/sites/', variables('websiteName'))]"
+                    ],
+                    "properties": {
+                        "SPRING_DATASOURCE_URL": "[concat('jdbc:sqlserver://', reference(concat('Microsoft.Sql/servers/', variables('sqlserverName'))).fullyQualifiedDomainName, ':1433;DatabaseName=', variables('sqlserverdbName'))]",
+                        "SPRING_DATASOURCE_DRIVERCLASSNAME": "com.microsoft.sqlserver.jdbc.SQLServerDriver",
+                        "SPRING_DATASOURCE_USERNAME": "[concat(variables('sqlLoginName'), '@', variables('sqlserverName'))]",
+                        "SPRING_DATASOURCE_PASSWORD": "[parameters('sqlLoginPassword')]",
+                        "SPRING_JPA_DATABASE_PLATFORM": "org.hibernate.dialect.SQLServerDialect"
+                    }
+                }
+            ],
+            "dependsOn": [
+                "[concat('Microsoft.Web/serverfarms/', variables('hostingplanName'))]"
+            ]
+        },
+        {
+            "name": "[variables('sqlserverName')]",
+            "type": "Microsoft.Sql/servers",
+            "location": "[resourceGroup().location]",
+            "apiVersion": "2014-04-01-preview",
+            "tags": {
+                "displayName": "[variables('sqlserverName')]"
+            },
+            "properties": {
+                "administratorLogin": "[variables('sqlLoginName')]",
+                "administratorLoginPassword": "[parameters('sqlLoginPassword')]"
+            },
+            "resources": [
+                {
+                    "name": "[concat('AllowAllIps', variables('sqlserverName'))]",
+                    "type": "firewallrules",
+                    "location": "[resourceGroup().location]",
+                    "apiVersion": "2014-04-01-preview",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.Sql/servers', variables('sqlserverName'))]"
+                    ],
+                    "properties": {
+                        "startIpAddress": "0.0.0.0",
+                        "endIpAddress": "0.0.0.0"
+                    }
+                },
+                {
+                    "name": "[variables('sqlserverdbname')]",
+                    "type": "databases",
+                    "location": "[resourceGroup().location]",
+                    "apiVersion": "2014-04-01-preview",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.Sql/servers', variables('sqlserverName'))]"
+                    ],
+                    "tags": {
+                        "displayName": "[variables('sqlserverdbname')]"
+                    },
+                    "properties": {
+                        "collation": "[parameters('sqldbCollation')]",
+                        "edition": "[parameters('sqldbSku')]"
+                    }
+                }
+            ]
+        }
+    ],
+    "$schema": "http://schema.management.azure.com/schemas/2014-04-01-preview/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0"
+}
