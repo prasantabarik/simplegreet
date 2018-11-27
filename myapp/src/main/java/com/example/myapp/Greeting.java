@@ -11,7 +11,7 @@ public class Greeting {
     @Id
     @GeneratedValue(strategy=GenerationType.AUTO)
     private long id;
-    private final String content;
+    private String content;
 
     public Greeting() {
         this.id = 0;
