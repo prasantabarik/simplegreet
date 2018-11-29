@@ -5,7 +5,7 @@
 
 - repo: self
 queue:
-  name: Default
+  name: Hosted Ubuntu 1604
   demands: maven
 
 steps:
