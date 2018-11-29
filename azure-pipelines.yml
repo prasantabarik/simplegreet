@@ -19,6 +19,7 @@ steps:
   displayName: 'Maven myapp/pom.xml'
   inputs:
     mavenPomFile: myapp/pom.xml
+    options: '-Dmaven.test.skip=true'
 - task: CopyFiles@2
   displayName: 'Copy Files to: $(build.artifactstagingdirectory)'
   inputs:
