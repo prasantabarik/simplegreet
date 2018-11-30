@@ -45,8 +45,9 @@
     "resources": [
         {
             "name": "[variables('hostingplanName')]",
-            "apiVersion": "2016-09-01",
+            "apiVersion": "2017-08-01",
             "type": "Microsoft.Web/serverfarms",
+            "kind": "linux",
             "location": "[resourceGroup().location]",
             "properties": {
                 "name": "[variables('hostingplanName')]",
