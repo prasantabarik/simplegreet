@@ -45,7 +45,7 @@
     "resources": [
         {
             "name": "[variables('hostingplanName')]",
-            "apiVersion": "2017-08-01",
+            "apiVersion": "2016-09-01",
             "type": "Microsoft.Web/serverfarms",
             "kind": "linux",
             "location": "[resourceGroup().location]",
@@ -62,6 +62,7 @@
             "name": "[variables('websiteName')]",
             "apiVersion": "2016-08-01",
             "type": "Microsoft.Web/sites",
+            "kind":"app,linux",
             "properties": {
                 "name": "[variables('websiteName')]",
                 "siteConfig": {
@@ -76,9 +77,7 @@
                     "name": "web",
                     "apiVersion": "2016-08-01",
                     "properties": {
-                        "javaVersion": "1.8",
-                        "javaContainer": "TOMCAT",
-                        "javaContainerVersion": "8.5"
+                        "linuxFxVersion": "TOMCAT|8.5-jre8"
                     },
                     "dependsOn": [
                         "[concat('Microsoft.Web/sites/', variables('websiteName'))]"
