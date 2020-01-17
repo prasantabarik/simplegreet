@@ -13,5 +13,7 @@ jobs:
       uses: actions/setup-java@v1
       with:
         java-version: 1.8
+    - name: Install SQL Server JDBC Package
+      run: mvn install:install-file -Dfile=myapp/mssqljdbc/sqljdbc42.jar -DgroupId=com.microsoft.sqlserver -DartifactId=sqljdbc4 -Dversion=6.0 -Dpackaging=jar
     - name: Build with Maven
       run: mvn -B package --file myapp/pom.xml
