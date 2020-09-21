@@ -1,32 +1,29 @@
-# Maven
-# Build your Java projects and run tests with Apache Maven.
-# Add steps that analyze code, save build artifacts, deploy, and more:
-# https://docs.microsoft.com/azure/devops/pipelines/languages/javaresources:
+trigger:
+- master
+- feature/*
+#put your variabe names 
+variables:
+ technology: 'springboot'
 
-queue:
-  name: Default
-  demands: maven
+resources:
+  repositories:
+  - repository: applicationtemplates
+    type: git
+    name: applicationtemplates
 
-steps:
-- task: Maven@3
-  displayName: 'Maven install SQL Server JDBC Driver'
-  inputs:
-    mavenPomFile: myapp/pom.xml
-    goals: 'install:install-file'
-    options: '-Dfile=$(system.defaultworkingdirectory)/myapp/mssqljdbc/sqljdbc42.jar -DgroupId=com.microsoft.sqlserver -DartifactId=sqljdbc4 -Dversion=6.0 -Dpackaging=jar'
-    publishJUnitResults: false
-- task: Maven@3
-  displayName: 'Maven myapp/pom.xml'
-  inputs:
-    mavenPomFile: myapp/pom.xml
-    options: '-Dmaven.test.skip=true'
-- task: CopyFiles@2
-  displayName: 'Copy Files to: $(build.artifactstagingdirectory)'
-  inputs:
-    SourceFolder: myapp/target
-    Contents: myapp.war
-    TargetFolder: '$(build.artifactstagingdirectory)'
-- task: PublishBuildArtifacts@1
-  displayName: 'Publish Artifact: drop'
-  inputs:
-    PathtoPublish: '$(build.artifactstagingdirectory)'
+stages:
+- stage: javabuild
+  displayName: javabuild
+  jobs:
+  - template: javabuild.yaml@applicationtemplates
+  condition: eq('${{ variables.technology }}', 'java')
+- stage: dotnetbuild
+  displayName: dotnetbuild
+  jobs:
+  - template: dotnetbuild.yaml@applicationtemplates
+  condition: eq('${{ variables.technology }}', 'dotnet')
+- stage: springbootbuild
+  displayName: springbootbuild
+  jobs:
+  - template: springbootbuild.yaml@applicationtemplates
+  condition: eq('${{ variables.technology }}', 'springboot')
