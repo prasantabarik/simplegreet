@@ -3,7 +3,7 @@ namespace: ""
 cdPipelineName: ""
 cdPipelineStageName: ""
 dnsWildcard: 59ae6b648ca3437aae3a.westeurope.aksapp.io
-framework: java11
+framework: java8
 
 database:
   required: false
